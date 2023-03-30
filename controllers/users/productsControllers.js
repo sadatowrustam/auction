@@ -7,32 +7,27 @@ const {
     Subcategories,
     Productbids,
     Notifications,
+    Likedproducts
 } = require('../../models');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 exports.getProducts = catchAsync(async(req, res) => {
     const limit = req.query.limit || 10;
-    const { offset } = req.query;
+    const { offset } = req.query ||0 ;
     var order, where;
-
+    where.userId=req.user.id
     let products = await Products.findAll({
-        isActive: true,
-        order,
+        order:[["updatedAt", "DESC"]],
         limit,
         offset,
         include: [{
                 model: Images,
                 as: "images"
-            },
-            {
-                model: Productsizes,
-                as: "product_sizes",
             }
         ],
         where
     });
-    products = await isLiked(products, req)
-    return res.status(200).json(products);
+    return res.status(200).send(products);
 });
 exports.getOneProduct = catchAsync(async(req, res, next) => {
     const product_id = req.params.id
@@ -48,7 +43,10 @@ exports.getOneProduct = catchAsync(async(req, res, next) => {
     if (!product) {
         return next(new AppError("Can't find product with that id"), 404);
     }
-    return res.send({ product })
+    const myBid=await Productbids.findOne({userId:req.user.id,productId:product.id})
+    const likeProduct=await Likedproducts.findOne({where:{userId:req.user.id,productId:product.id}})
+    if(likeProduct) product.isLiked=true
+    return res.send({ product,myBid })
 })
 exports.addProduct=catchAsync(async(req,res,next)=>{
     const category = await Categories.findOne({
@@ -82,15 +80,9 @@ exports.addProduct=catchAsync(async(req,res,next)=>{
 exports.placeBid=catchAsync(async (req,res,next)=>{
     const product = await Products.findOne({
         where: { product_id:req.params.id },
-        include: [
-            {
-                model: Images,
-                as: "images"
-            }
-        ]
     })
     //notification ugratmaly
-    await Productbids.destroy({where:{user_id:req.user.user_id,product_id:product.product_id}});
+    const productbid=await Productbids.findOne({where:{user_id:req.user.user_id,product_id:product.product_id}});
     await Productbids.create({user_id:req.user.user_id,product_id:product.product_id,bid:req.body.bid})
     await product.update({
         last_price:req.body.bid,
@@ -99,7 +91,7 @@ exports.placeBid=catchAsync(async (req,res,next)=>{
     if (!product) {
         return next(new AppError("Can't find product with that id"), 404);
     }
-    await Notifications.create({text:"Senin bidini gecdi",product_id:product.product_id,user_id:req.user.user_id})
+    await Notifications.create({text:"Senin bidini gecdi",product_id:product.product_id,user_id:productbid.user_id})
     return res.status(200).send(product)
 })
 exports.getMyBids=catchAsync(async(req,res,next)=>{
@@ -118,5 +110,24 @@ exports.getMyBids=catchAsync(async(req,res,next)=>{
         array.push(obj)
     }
     return res.send(array)
+})
+exports.deleteBid=catchAsync(async(req,res,next)=>{
+    const product = await Products.findOne({
+        where: { product_id:req.params.id },
+        include: [
+            {
+                model: Images,
+                as: "images"
+            }
+        ]
+    })
+    const productbid=await Productbids.findOne({where: { product_id:product.product_id,user_id:req.user.user_id}})
+    if(product.last_bid==productbid.bid){
+        const productbids=await Productbids.findAll({where:{product_id:product.product_id},order:[["bid","DESC"]],limit:2})
+        await product.update({last_bid:productbids[1].bid})
+        await Notifications.create({text:"Senin bidini in uly bid boldy",product_id:product.product_id,user_id:productbid.user_id})
+    }
+    await productbid.destroy()
+    return res.send("Sucess")
 })
  

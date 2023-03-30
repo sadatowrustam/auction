@@ -192,17 +192,8 @@ exports.dislikeProduct = catchAsync(async(req, res, next) => {
     return res.status(200).send({ msg: "Success" })
 })
 exports.getUsersLikedProducts = catchAsync(async(req, res, next) => {
-    console.log(req.body)
-    const limit = req.query.limit || 20
-    const offset = req.query.offset || 0
     const { sort } = req.query
-    if (sort == 1) var order = [
-        ["price", "DESC"]
-    ]
-    else if (sort == 2) var order = [
-        ["price", "ASC"]
-    ]
-    else var order = [
+    var order = [
         ["updatedAt", "DESC"]
     ]
     const liked_product = await Users.findOne({

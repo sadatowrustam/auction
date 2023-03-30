@@ -66,6 +66,14 @@ module.exports = (sequelize, DataTypes) => {
         subcategoryId: {
             type: DataTypes.INTEGER
         },
+        isLiked:{
+            type:DataTypes.BOOLEAN,
+            defaultValue:false
+        },
+        isFinished:{
+            type:DataTypes.BOOLEAN,
+            defaultValue:false
+        }
     }, {
         sequelize,
         tableName: "products",

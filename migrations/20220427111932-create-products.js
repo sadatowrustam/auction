@@ -59,9 +59,17 @@ module.exports = {
             last_bidder:{
                 type:DataTypes.STRING
             },
+            isLiked:{
+                type:DataTypes.BOOLEAN,
+                defaultValue:false
+            },
             expire_date:{
                 type:DataTypes.STRING    
            },
+           isFinished:{
+            type:DataTypes.BOOLEAN,
+            defaultValue:false
+            },
             createdAt: {
                 allowNull: false,
                 type: DataTypes.DATE

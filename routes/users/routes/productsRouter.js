@@ -4,12 +4,17 @@ const router = express.Router()
 const {
     addProduct, 
     placeBid,
-    getMyBids
+    getMyBids,
+    getProducts,
+    getOneProduct,
+    deleteBid
 } = require('../../../controllers/users/productsControllers');
 
 router.post("/add",addProduct)
 router.post("/upload-image/:id",uploadProductImage)
 router.post("/bid/:id",placeBid)
 router.get("/bid",getMyBids )
-// router.delete("/bid/:id",deleteBid)
+router.get("/",getProducts)
+router.get("/:id",getOneProduct)
+router.delete("/bid/:id",deleteBid)
 module.exports = router

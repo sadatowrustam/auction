@@ -82,7 +82,7 @@ exports.getOneProduct = catchAsync(async(req, res, next) => {
     })
     return res.send(oneProduct)
 })
-exports.editProduct = catchAsync(async(req, res, next) => {
+exports. editProduct = catchAsync(async(req, res, next) => {
     const product = await Products.findOne({
         where: { product_id: req.params.id },
     });
