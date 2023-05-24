@@ -3,6 +3,7 @@ var cors = require('cors');
 const AppError = require('./utils/appError');
 const fileupload = require("express-fileupload")
 const app = express();
+const swaggerUI=require("swagger-ui-express")
 const limiter = require('express-rate-limit')({
     max: 100,
     windowMs: 1000,
@@ -23,7 +24,7 @@ app.use(fileupload())
 app.use('/users', require('./routes/users/usersRouter'));
 app.use('/admin', require('./routes/admin/adminRouter'));
 app.use('/public', require('./routes/public/publicRouter'));
-
+app.use("/api-docs",swaggerUI.serve,swaggerUI.setup(require("./utils/docsOptions")))
 app.all('*', (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
